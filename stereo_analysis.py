@@ -60,7 +60,9 @@ def region_based_analysis_SAD(image1, image2, template_size, window_size, num_le
     increment = 255 / largest
     disparity_map = (255 - disparity_map) * increment
     disparity_map = np.rint(disparity_map)
-    return disparity_map.astype(np.uint8)
+    disparity_map = disparity_map.astype(np.uint8)
+    disparity_map = cv2.bitwise_not(disparity_map)
+    return disparity_map
 
 
 def region_based_analysis_SSD(image1, image2, template_size, window_size, num_levels=0):
@@ -118,7 +120,9 @@ def region_based_analysis_SSD(image1, image2, template_size, window_size, num_le
     increment = 255 / largest
     disparity_map = (255 - disparity_map) * increment
     disparity_map = np.rint(disparity_map)
-    return disparity_map.astype(np.uint8)
+    disparity_map = disparity_map.astype(np.uint8)
+    disparity_map = cv2.bitwise_not(disparity_map)
+    return disparity_map
 
 
 def region_based_analysis_NCC(image1, image2, template_size, window_size, num_levels=0):
@@ -159,7 +163,9 @@ def region_based_analysis_NCC(image1, image2, template_size, window_size, num_le
                 # subtract the matrix's mean from it
                 image2_matrix_mean = np.sum(image2_matrix) / template_pixels
                 image2_matrix = image2_matrix - image2_matrix_mean
-                total_NCC = np.sum(template*image2_matrix)/(np.std(template)*np.std(image2_matrix))
+                # total_NCC = np.sum(template*image2_matrix)/(np.std(template)*np.std(image2_matrix))
+                denom = (np.sum(template**2)*np.sum(image2_matrix**2))**0.5
+                total_NCC = np.sum(template*image2_matrix)/denom
                 assert(-1 <= total_NCC <= 1)
                 if total_NCC > maxNCCscore:
                     maxNCCscore = total_NCC
@@ -176,7 +182,9 @@ def region_based_analysis_NCC(image1, image2, template_size, window_size, num_le
     increment = 255 / largest
     disparity_map = (255 - disparity_map) * increment
     disparity_map = np.rint(disparity_map)
-    return disparity_map.astype(np.uint8)
+    disparity_map = disparity_map.astype(np.uint8)
+    disparity_map = cv2.bitwise_not(disparity_map)
+    return disparity_map
 
 
 # image1 = cv2.imread('sample_images/cones/im2.png')
