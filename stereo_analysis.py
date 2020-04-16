@@ -5,7 +5,7 @@ import sys
 import image_blending as ib
 
 
-def region_based_analysis_SAD(image1, image2, template_size, window_size, num_levels=0):
+def region_based_analysis_sad(image1, image2, template_size, window_size, num_levels=0):
     """
     :param image1: an image of varying size (numpy ndarray)
     :param image2: an image of varying size (numpy ndarray) that is a view of the same scene
@@ -29,8 +29,8 @@ def region_based_analysis_SAD(image1, image2, template_size, window_size, num_le
     # for every pixel where a full template chunk can be taken
     for i in range(0, image_height-template_height):
         for j in range(0, image_width-template_width):
-            minSADscore = sys.maxsize
-            minSADlocation = None
+            min_sad_score = sys.maxsize
+            min_ssd_location = None
             template = image1_greyscale[i:i+template_height, j:j+template_width]
             # subtrack the templates mean from it
             template_mean = np.sum(template) / template_pixels
@@ -43,13 +43,13 @@ def region_based_analysis_SAD(image1, image2, template_size, window_size, num_le
                 # subtract the matrix's mean from it
                 image2_matrix_mean = np.sum(image2_matrix) / template_pixels
                 image2_matrix = image2_matrix - image2_matrix_mean
-                SAD_matrix = abs(template - image2_matrix)
-                total_SAD = np.sum(SAD_matrix)
-                if total_SAD < minSADscore:
-                    minSADscore = total_SAD
-                    minSADlocation = distance
+                sad_matrix = abs(template - image2_matrix)
+                total_sad = np.sum(sad_matrix)
+                if total_sad < min_sad_score:
+                    min_sad_score = total_sad
+                    min_ssd_location = distance
                 distance += 1
-            disparity_value = abs(window_size - minSADlocation)
+            disparity_value = abs(window_size - min_ssd_location)
             disparity_matrix = np.zeros((template_height, template_width))
             disparity_matrix.fill(disparity_value)
             disparity_map[i:i+template_height, j:j+template_width] = disparity_matrix
@@ -65,7 +65,7 @@ def region_based_analysis_SAD(image1, image2, template_size, window_size, num_le
     return disparity_map
 
 
-def region_based_analysis_SSD(image1, image2, template_size, window_size, num_levels=0):
+def region_based_analysis_ssd(image1, image2, template_size, window_size, num_levels=0):
     """
     :param image1: an image of varying size (numpy ndarray)
     :param image2: an image of varying size (numpy ndarray) that is a view of the same scene
@@ -89,8 +89,8 @@ def region_based_analysis_SSD(image1, image2, template_size, window_size, num_le
     # for every pixel where a full template chunk can be taken
     for i in range(0, image_height-template_height):
         for j in range(0, image_width-template_width):
-            minSSDscore = sys.maxsize
-            minSSDlocation = None
+            min_ssd_score = sys.maxsize
+            min_ssd_location = None
             template = image1_greyscale[i:i+template_height, j:j+template_width]
             # subtrack the templates mean from it
             template_mean = np.sum(template) / template_pixels
@@ -103,13 +103,13 @@ def region_based_analysis_SSD(image1, image2, template_size, window_size, num_le
                 # subtract the matrix's mean from it
                 image2_matrix_mean = np.sum(image2_matrix) / template_pixels
                 image2_matrix = image2_matrix - image2_matrix_mean
-                SSD_matrix = (template-image2_matrix)**2
-                total_SSD = np.sum(SSD_matrix)
-                if total_SSD < minSSDscore:
-                    minSSDscore = total_SSD
-                    minSSDlocation = distance
+                ssd_matrix = (template-image2_matrix)**2
+                total_ssd = np.sum(ssd_matrix)
+                if total_ssd < min_ssd_score:
+                    min_ssd_score = total_ssd
+                    min_ssd_location = distance
                 distance += 1
-            disparity_value = abs(window_size - minSSDlocation)
+            disparity_value = abs(window_size - min_ssd_location)
             disparity_matrix = np.zeros((template_height, template_width))
             disparity_matrix.fill(disparity_value)
             disparity_map[i:i+template_height, j:j+template_width] = disparity_matrix
@@ -125,7 +125,7 @@ def region_based_analysis_SSD(image1, image2, template_size, window_size, num_le
     return disparity_map
 
 
-def region_based_analysis_NCC(image1, image2, template_size, window_size, num_levels=0):
+def region_based_analysis_ncc(image1, image2, template_size, window_size, num_levels=0):
     """
     :param image1: an image of varying size (numpy ndarray)
     :param image2: an image of varying size (numpy ndarray) that is a view of the same scene
@@ -149,8 +149,8 @@ def region_based_analysis_NCC(image1, image2, template_size, window_size, num_le
     # for every pixel where a full template chunk can be taken
     for i in range(0, image_height-template_height):
         for j in range(0, image_width-template_width):
-            maxNCCscore = -1
-            maxNCClocation = None
+            max_ncc_score = -1
+            max_ncc_location = None
             template = image1_greyscale[i:i+template_height, j:j+template_width]
             # subtrack the templates mean from it
             template_mean = np.sum(template) / template_pixels
@@ -164,14 +164,14 @@ def region_based_analysis_NCC(image1, image2, template_size, window_size, num_le
                 image2_matrix_mean = np.sum(image2_matrix) / template_pixels
                 image2_matrix = image2_matrix - image2_matrix_mean
                 # total_NCC = np.sum(template*image2_matrix)/(np.std(template)*np.std(image2_matrix))
-                denom = (np.sum(template**2)*np.sum(image2_matrix**2))**0.5
-                total_NCC = np.sum(template*image2_matrix)/denom
-                assert(-1 <= total_NCC <= 1)
-                if total_NCC > maxNCCscore:
-                    maxNCCscore = total_NCC
-                    maxNCClocation = distance
+                denominator = (np.sum(template**2)*np.sum(image2_matrix**2))**0.5
+                total_ncc = np.sum(template*image2_matrix)/denominator
+                assert(-1 <= total_ncc <= 1)
+                if total_ncc > max_ncc_score:
+                    max_ncc_score = total_ncc
+                    max_ncc_location = distance
                 distance += 1
-            disparity_value = abs(window_size - maxNCClocation)
+            disparity_value = abs(window_size - max_ncc_location)
             disparity_matrix = np.zeros((template_height, template_width))
             disparity_matrix.fill(disparity_value)
             disparity_map[i:i+template_height, j:j+template_width] = disparity_matrix
