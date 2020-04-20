@@ -20,5 +20,7 @@ result6.html
 an interactive demo can be launched with the following command:  
 python3 demo.py  
 
+Note: multi-resolution with 3 levels takes ~20 minutes on my machine, and 1 level takes ~10 minutes  
+
 The "feature_based" and "region_based" folders contain various other results images, 
 but the html pages have the best results with explanations and parameters listed.   
