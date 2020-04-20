@@ -25,13 +25,13 @@ def multi_resolution_analysis(image1, image2, template_size, window_size, n, sea
     starting_disparity = None
     for k in range(n-1, -1, -1):
         left_to_right, right_to_left = get_disparity_maps(image1_pyramid[k], image2_pyramid[k], template_size,
-                                                          window_size, n, search_both, matching_score, feature_based)
+                                                          window_size, n, search_both, matching_score, feature_based, starting_disparity)
         assert(np.size(left_to_right, 0) == np.size(right_to_left, 0))
         assert(np.size(left_to_right, 1) == np.size(right_to_left, 1))
-        cv2.imshow("left to right", rba.normalize_disparity_values(left_to_right))
-        cv2.imshow("right to left", rba.normalize_disparity_values(right_to_left))
-        cv2.waitKey(0)
-        cv2.destroyAllWindows()
+        # cv2.imshow("left to right", rba.normalize_disparity_values(left_to_right))
+        # cv2.imshow("right to left", rba.normalize_disparity_values(right_to_left))
+        # cv2.waitKey(0)
+        # cv2.destroyAllWindows()
         # Do validity check
         for i in range(0, np.size(left_to_right, 0)):
             for j in range(0, np.size(left_to_right, 1)):
@@ -39,11 +39,9 @@ def multi_resolution_analysis(image1, image2, template_size, window_size, n, sea
                 r_to_l_value = np.rint(right_to_left[i, j+l_to_r_value]).astype(np.uint8) if j+l_to_r_value < np.size(left_to_right, 1) else np.size(left_to_right, 1)
                 if l_to_r_value != r_to_l_value:
                     left_to_right[i, j] = 0
-                    # right_to_left[i, j] = 0
         # Average out the zeroes
-        left_to_right = average_out_zeroes(left_to_right)
+        # left_to_right = average_out_zeroes(left_to_right)
         starting_disparity = ib.expand(left_to_right)
-
     return left_to_right
 
 
@@ -57,14 +55,6 @@ def average_out_zeroes(disparity_map):
     for i in range(0, height):
         for j in range(0, width):
             if disparity_map[i, j] == 0:
-                # i_start = i - 2 if i > 1 else 0
-                # i_end = i + 2 if i < height - 1 else height
-                # j_start = j - 2 if j > 1 else 0
-                # j_end = j + 2 if j < width - 1 else width
-                # neighborhood = disparity_map[i_start:i_end, j_start:j_end]
-                # avg = np.sum(neighborhood)/25
-                # disparity_map[i, j] = avg
-                # 3x3
                 i_start = i - 1 if i > 0 else 0
                 i_end = i + 1 if i < height else height
                 j_start = j - 1 if j > 0 else 0
@@ -75,7 +65,8 @@ def average_out_zeroes(disparity_map):
     return disparity_map
 
 
-def get_disparity_maps(image1, image2, template_size, window_size, n, search_both=False, matching_score="SAD", feature_based=False):
+def get_disparity_maps(image1, image2, template_size, window_size, n,
+                       search_both=False, matching_score="SAD", feature_based=False, starting_disparity=None):
     """
     :param image1: an image of varying size (numpy ndarray)
     :param image2: an image of varying size (numpy ndarray) that is a view of the same scene
@@ -85,19 +76,20 @@ def get_disparity_maps(image1, image2, template_size, window_size, n, search_bot
     :param search_both: whether or not to search in both directions. By default it will not.
     :param matching_score: "SAD", "SSD", "NCC"
     :param feature_based: whether or not to use feature-based analysis. By default it will be region-based.
+    :param starting_disparity: disparity map to use for guiding the search
     :return: left_to_right and right_to_left disparity maps in a tuple
     """
     if matching_score == "SAD":
         if search_both:
             left_to_right = rba.region_based_analysis_sad(image1, image2, template_size, window_size,
-                                                          search_direction="BOTH")
+                                                          search_direction="BOTH", starting_disparity=starting_disparity)
             right_to_left = rba.region_based_analysis_sad(image2, image1, template_size, window_size,
-                                                          search_direction="BOTH")
+                                                          search_direction="BOTH", starting_disparity=starting_disparity)
         else:
             left_to_right = rba.region_based_analysis_sad(image1, image2, template_size, window_size,
-                                                          search_direction="R")
+                                                          search_direction="R", starting_disparity=starting_disparity)
             right_to_left = rba.region_based_analysis_sad(image2, image1, template_size, window_size,
-                                                          search_direction="L")
+                                                          search_direction="L", starting_disparity=starting_disparity)
     elif matching_score == "SSD":
         if search_both:
             left_to_right = rba.region_based_analysis_ssd(image1, image2, template_size, window_size,

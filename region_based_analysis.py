@@ -5,7 +5,7 @@ import sys
 import image_blending as ib
 
 
-def region_based_analysis_sad(image1, image2, template_size, window_size, search_direction="BOTH"):
+def region_based_analysis_sad(image1, image2, template_size, window_size, search_direction="BOTH", starting_disparity=None):
     """
     :param image1: an image of varying size (numpy ndarray)
     :param image2: an image of varying size (numpy ndarray) that is a view of the same scene
@@ -13,6 +13,7 @@ def region_based_analysis_sad(image1, image2, template_size, window_size, search
     :param template_size: tuple of the form (width, height) representing the dimensions of the matching window
     :param window_size: number of pixels to the right and left within which to search for a template match
     :param search_direction: either "R", "L", or "BOTH"
+    :param starting_disparity: initial disparity map to use for guiding search. None by default
     :return: the disparity map result from the region-based analysis of the two images using the SAD matching score
     """
     # images should be of the same size
@@ -36,8 +37,22 @@ def region_based_analysis_sad(image1, image2, template_size, window_size, search
             template_mean = np.sum(template) / template_pixels
             template = template - template_mean
             left_boundary, right_boundary = calculate_search_window_region_based(j, window_size, template_width, image_width, search_direction)
+            if starting_disparity is not None:
+                init_disp_value = np.rint(starting_disparity[i, j]).astype(np.uint8)
+            else:
+                init_disp_value = 0
             distance = 0
             for k in range(left_boundary, right_boundary):
+                # NEW
+                if distance == j-init_disp_value and search_direction == "BOTH":
+                    if k + init_disp_value * 2 < right_boundary:
+                        k += init_disp_value*2
+                elif distance == j-init_disp_value and search_direction == "L":
+                    if k + init_disp_value < right_boundary:
+                        k += init_disp_value
+                elif distance == init_disp_value and search_direction == "R":
+                    if k + init_disp_value < right_boundary:
+                        k += init_disp_value
                 image2_matrix = image2_greyscale[i:i+template_height, k:k+template_width]
                 # subtract the matrix's mean from it
                 image2_matrix_mean = np.sum(image2_matrix) / template_pixels
@@ -57,7 +72,7 @@ def region_based_analysis_sad(image1, image2, template_size, window_size, search
     return disparity_map
 
 
-def region_based_analysis_ssd(image1, image2, template_size, window_size, search_direction="BOTH"):
+def region_based_analysis_ssd(image1, image2, template_size, window_size, search_direction="BOTH", starting_disparity=None):
     """
     :param image1: an image of varying size (numpy ndarray)
     :param image2: an image of varying size (numpy ndarray) that is a view of the same scene
@@ -65,6 +80,7 @@ def region_based_analysis_ssd(image1, image2, template_size, window_size, search
     :param template_size: tuple of the form (width, height) representing the dimensions of the matching window
     :param window_size: number of pixels to the right and left within which to search for a template match
     :param search_direction: either "R", "L", or "BOTH"
+    :param starting_disparity: initial disparity map to use for guiding search. None by default
     :return: the disparity map result from the region-based analysis of the two images using the SSD matching score
     """
     # images should be of the same size
@@ -88,8 +104,22 @@ def region_based_analysis_ssd(image1, image2, template_size, window_size, search
             template_mean = np.sum(template) / template_pixels
             template = template - template_mean
             left_boundary, right_boundary = calculate_search_window_region_based(j, window_size, template_width, image_width, search_direction)
+            if starting_disparity is not None:
+                init_disp_value = np.rint(starting_disparity[i, j]).astype(np.uint8)
+            else:
+                init_disp_value = 0
             distance = 0
             for k in range(left_boundary, right_boundary):
+                # NEW
+                if distance == j-init_disp_value and search_direction == "BOTH":
+                    if k + init_disp_value * 2 < right_boundary:
+                        k += init_disp_value*2
+                elif distance == j-init_disp_value and search_direction == "L":
+                    if k + init_disp_value < right_boundary:
+                        k += init_disp_value
+                elif distance == init_disp_value and search_direction == "R":
+                    if k + init_disp_value < right_boundary:
+                        k += init_disp_value
                 image2_matrix = image2_greyscale[i:i+template_height, k:k+template_width]
                 # subtract the matrix's mean from it
                 image2_matrix_mean = np.sum(image2_matrix) / template_pixels
@@ -109,7 +139,7 @@ def region_based_analysis_ssd(image1, image2, template_size, window_size, search
     return disparity_map
 
 
-def region_based_analysis_ncc(image1, image2, template_size, window_size, search_direction="BOTH"):
+def region_based_analysis_ncc(image1, image2, template_size, window_size, search_direction="BOTH", starting_disparity=None):
     """
     :param image1: an image of varying size (numpy ndarray)
     :param image2: an image of varying size (numpy ndarray) that is a view of the same scene
@@ -117,6 +147,7 @@ def region_based_analysis_ncc(image1, image2, template_size, window_size, search
     :param template_size: tuple of the form (width, height) representing the dimensions of the matching window
     :param window_size: number of pixels to the right and left within which to search for a template match
     :param search_direction: either "R", "L", or "BOTH"
+    :param starting_disparity: initial disparity map to use for guiding search. None by default
     :return: the disparity map result from the region-based analysis of the two images using the NCC matching score
     """
     # images should be of the same size
@@ -140,8 +171,22 @@ def region_based_analysis_ncc(image1, image2, template_size, window_size, search
             template_mean = np.sum(template) / template_pixels
             template = template - template_mean
             left_boundary, right_boundary = calculate_search_window_region_based(j, window_size, template_width, image_width, search_direction)
+            if starting_disparity is not None:
+                init_disp_value = np.rint(starting_disparity[i, j]).astype(np.uint8)
+            else:
+                init_disp_value = 0
             distance = 0
             for k in range(left_boundary, right_boundary):
+                # NEW
+                if distance == j-init_disp_value and search_direction == "BOTH":
+                    if k + init_disp_value * 2 < right_boundary:
+                        k += init_disp_value*2
+                elif distance == j-init_disp_value and search_direction == "L":
+                    if k + init_disp_value < right_boundary:
+                        k += init_disp_value
+                elif distance == init_disp_value and search_direction == "R":
+                    if k + init_disp_value < right_boundary:
+                        k += init_disp_value
                 image2_matrix = image2_greyscale[i:i+template_height, k:k+template_width]
                 # subtract the matrix's mean from it
                 image2_matrix_mean = np.sum(image2_matrix) / template_pixels

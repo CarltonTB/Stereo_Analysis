@@ -125,7 +125,7 @@ class StereoAnalysisTest(unittest.TestCase):
     def test_multi_resolution_analysis(self):
         image1 = cv2.imread('sample_images/cones/im6.png')
         image2 = cv2.imread('sample_images/cones/im2.png')
-        disparity_map = mra.multi_resolution_analysis(image1, image2, (7, 7), 50, 1,
+        disparity_map = mra.multi_resolution_analysis(image1, image2, (7, 7), 50, 3,
                                                       search_both=True, matching_score="SAD", feature_based=False)
         disparity_map = rba.normalize_disparity_values(disparity_map)
         self.assertEqual(np.size(disparity_map, 0), np.size(image1, 0))
