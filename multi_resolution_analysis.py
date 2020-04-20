@@ -25,13 +25,9 @@ def multi_resolution_analysis(image1, image2, template_size, window_size, n, sea
     starting_disparity = None
     for k in range(n-1, -1, -1):
         left_to_right, right_to_left = get_disparity_maps(image1_pyramid[k], image2_pyramid[k], template_size,
-                                                          window_size, n, search_both, matching_score, feature_based, starting_disparity)
+                                                          window_size, n, search_both, matching_score, starting_disparity, feature_based)
         assert(np.size(left_to_right, 0) == np.size(right_to_left, 0))
         assert(np.size(left_to_right, 1) == np.size(right_to_left, 1))
-        # cv2.imshow("left to right", rba.normalize_disparity_values(left_to_right))
-        # cv2.imshow("right to left", rba.normalize_disparity_values(right_to_left))
-        # cv2.waitKey(0)
-        # cv2.destroyAllWindows()
         # Do validity check
         for i in range(0, np.size(left_to_right, 0)):
             for j in range(0, np.size(left_to_right, 1)):
@@ -40,7 +36,7 @@ def multi_resolution_analysis(image1, image2, template_size, window_size, n, sea
                 if l_to_r_value != r_to_l_value:
                     left_to_right[i, j] = 0
         # Average out the zeroes
-        # left_to_right = average_out_zeroes(left_to_right)
+        left_to_right = average_out_zeroes(left_to_right)
         starting_disparity = ib.expand(left_to_right)
     return left_to_right
 
@@ -66,7 +62,7 @@ def average_out_zeroes(disparity_map):
 
 
 def get_disparity_maps(image1, image2, template_size, window_size, n,
-                       search_both=False, matching_score="SAD", feature_based=False, starting_disparity=None):
+                       search_both=False, matching_score="SAD", starting_disparity=None, feature_based=False):
     """
     :param image1: an image of varying size (numpy ndarray)
     :param image2: an image of varying size (numpy ndarray) that is a view of the same scene
@@ -85,6 +81,11 @@ def get_disparity_maps(image1, image2, template_size, window_size, n,
                                                           search_direction="BOTH", starting_disparity=starting_disparity)
             right_to_left = rba.region_based_analysis_sad(image2, image1, template_size, window_size,
                                                           search_direction="BOTH", starting_disparity=starting_disparity)
+            if feature_based:
+                left_to_right = fba.feature_based_analysis_sad(image1, image2, (7, 7), 50,
+                                                               left_to_right, search_direction="BOTH")
+                right_to_left = fba.feature_based_analysis_sad(image2, image1, (7, 7), 50,
+                                                               right_to_left, search_direction="BOTH")
         else:
             left_to_right = rba.region_based_analysis_sad(image1, image2, template_size, window_size,
                                                           search_direction="R", starting_disparity=starting_disparity)
@@ -96,6 +97,11 @@ def get_disparity_maps(image1, image2, template_size, window_size, n,
                                                           search_direction="BOTH")
             right_to_left = rba.region_based_analysis_ssd(image2, image1, template_size, window_size,
                                                           search_direction="BOTH")
+            if feature_based:
+                left_to_right = fba.feature_based_analysis_ssd(image1, image2, (7, 7), 50,
+                                                               left_to_right, search_direction="BOTH")
+                right_to_left = fba.feature_based_analysis_ssd(image2, image1, (7, 7), 50,
+                                                               right_to_left, search_direction="BOTH")
         else:
             left_to_right = rba.region_based_analysis_ssd(image1, image2, template_size, window_size,
                                                           search_direction="R")
@@ -107,6 +113,11 @@ def get_disparity_maps(image1, image2, template_size, window_size, n,
                                                           search_direction="BOTH")
             right_to_left = rba.region_based_analysis_ncc(image2, image1, template_size, window_size,
                                                           search_direction="BOTH")
+            if feature_based:
+                left_to_right = fba.feature_based_analysis_ncc(image1, image2, (7, 7), 50,
+                                                               left_to_right, search_direction="BOTH")
+                right_to_left = fba.feature_based_analysis_ncc(image2, image1, (7, 7), 50,
+                                                               right_to_left, search_direction="BOTH")
         else:
             left_to_right = rba.region_based_analysis_ncc(image1, image2, template_size, window_size,
                                                           search_direction="R")
