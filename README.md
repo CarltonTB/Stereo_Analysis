@@ -9,7 +9,8 @@ dependencies:
 
 The images used are in the "sample_images" folder.    
 
-HTML results pages can be found in the "results" folder with the following names:  
+HTML results pages that can be found in the "results" folder. They display the results nicely
+when open in a browser:  
 result1.html  
 result2.html  
 result3.html  
