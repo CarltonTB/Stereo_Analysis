@@ -53,7 +53,7 @@ def convolve(I, H):
     return result
 
 
-def reduce(I):
+def reduce(I, blur_image=True):
     """
     I is an image of varying size
     Does gaussian blurring then samples every other pixel
@@ -66,13 +66,9 @@ def reduce(I):
                                 [1, 2, 1]],
                                dtype=np.float32)
     gaussian_kernel = (1 / 16) * gaussian_kernel
-    # row_gaussian_kernel = np.array([[1, 2, 1]],
-    #                                dtype=np.float32)
-    # row_gaussian_kernel = (1 / 4) * row_gaussian_kernel
-    # col_gaussian_kernel = row_gaussian_kernel.transpose()
-    # Blur with the column filter first
-    # col_kernel_blurred_image = convolve(I, col_gaussian_kernel)
-    blurred_image = convolve(I, gaussian_kernel)
+    blurred_image = I
+    if blur_image:
+        convolve(I, gaussian_kernel)
     # image height
     image_height = np.size(blurred_image, 0)
     # image width
@@ -93,30 +89,13 @@ def expand(I):
     returns:
     a copy of the image expanded to be twice the size
     """
-    # # image depth
-    # image_channels = np.size(I, 2)
-    # # image height
-    # image_height = np.size(I, 0)
-    # # image width
-    # image_width = np.size(I, 1)
-    # # create an ndarray of twice the size filled with all zeros, then fill it in
-    # result = np.zeros((image_height*2, image_width*2, image_channels), dtype=np.float32)
-    # pr = 0  # expanded pixel row
-    # # loop through all the pixels in the image
-    # for i in range(0, image_height):
-    #     pc = 0  # expanded pixel col
-    #     for j in range(0, image_width):
-    #         # make a 2x2 square of pixels in the output equal to the current pixel
-    #         result[pr:pr+2, pc:pc+2] = I[i, j]
-    #         pc += 2
-    #     pr += 2
     result = np.copy(I)
     new_width = np.size(result, 1)*2
     new_height = np.size(result, 0)*2
     return cv2.resize(result, dsize=(new_width, new_height))
 
 
-def gaussian_pyramid(I, n):
+def gaussian_pyramid(I, n, blur_image=True):
     """
     Creates a Gaussian pyramid of the image with n levels.
     I is an image of varying size
@@ -129,7 +108,7 @@ def gaussian_pyramid(I, n):
     cur_level = np.copy(I)
     g_pyramid.append(cur_level)
     for i in range(0, n-1):
-        cur_level = reduce(cur_level)
+        cur_level = reduce(cur_level, blur_image=blur_image)
         g_pyramid.append(cur_level)
     return g_pyramid
 

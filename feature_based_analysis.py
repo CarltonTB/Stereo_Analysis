@@ -284,13 +284,3 @@ def get_harris_corners(image_greyscale):
                 corner_coordinates.update({(i, j) : corner_response[i, j]})
     return corner_response, corner_coordinates
 
-
-# image = cv2.imread('sample_images/cones/im6.png')
-# image_grey = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-#
-# corners = get_harris_corners(image_grey)
-# image[corners > 0.01 * corners.max()] = [0, 0, 255]
-#
-# cv2.imshow("corners", image)
-# cv2.waitKey(0)
-# cv2.destroyAllWindows()
